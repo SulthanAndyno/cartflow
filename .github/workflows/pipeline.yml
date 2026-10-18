@@ -1,0 +1,27 @@
+name: pipeline
+on:
+  schedule:
+    - cron: "0 1 * * *" # setiap hari 08.00 WIB
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+      KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+      PII_SALT: ${{ secrets.PII_SALT }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.0
+      - run: uv sync --locked
+      - run: uv run python -m pipeline
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hasil-pipeline
+          path: |
+            data/export/
+            data/quality_log.csv
